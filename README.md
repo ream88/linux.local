@@ -167,7 +167,7 @@ a range of services, which include:
   Some useful commands during development:
 
   ```sh
-  make
+  bun run build
   rsync -vr dist docker.local:/home/pi/nginx/
   rsync -v nginx.conf docker.local:/home/pi/nginx/
   ssh docker.local 'docker rm -f $(docker ps -qaf name=nginx)'

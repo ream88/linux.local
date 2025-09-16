@@ -1,2 +1,3 @@
 dist/
 tailwindcss
+node_modules/
