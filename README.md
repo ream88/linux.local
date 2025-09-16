@@ -79,6 +79,17 @@ a range of services, which include:
   }
   ```
 
+  ## Nuki MQTT Setup
+
+  To connect the Nuki Smart Lock with HomeKit (via HomeBridge and MQTT), configure the MQTT integration in the Nuki app:
+
+  1. Open the Nuki app and go to lock settings
+  2. Enable MQTT integration with the following settings:
+     - **Host:** `10.0.0.254`
+     - **Username:** `mqtt`
+     - **Password:** `mosquito`
+     - **Automatic discovery:** Off (disable the first setting for automatic device discovery)
+
   Here is the configuration to add latch functionality to the Nuki Smart Lock Pro (5th generation):
 
   ```json
