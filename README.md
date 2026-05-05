@@ -1,4 +1,4 @@
-# docker.local
+# linux.local
 
 The following configuration uses [Docker Compose](https://docs.docker.com/compose/)
 to run containers on a [mini PC](https://www.amazon.de/dp/B0GJ5HS2GC) running
@@ -33,7 +33,7 @@ Ubuntu 25.10.
   {
     "type": "lightbulb-OnOff",
     "name": "Fridge",
-    "url": "http://10.0.0.4:1883",
+    "url": "http://10.0.0.254:1883",
     "topics": {
         "getOnline": "fridge/status",
         "getOn": "fridge/switch/sonoff_lamp/state",
@@ -55,7 +55,7 @@ Ubuntu 25.10.
 
   1. Open the Nuki app and go to lock settings
   2. Enable MQTT integration with the following settings:
-     - **Host:** `10.0.0.4`
+     - **Host:** `10.0.0.254`
      - **Username:** `mqtt`
      - **Password:** `mosquito`
      - **Automatic discovery:** Off (disable the first setting for automatic device discovery)
@@ -95,7 +95,7 @@ Ubuntu 25.10.
 
 - ### NGINX
 
-  Nginx is used to render a simple website at <http://docker.local>.
+  Nginx is used to render a simple website at <http://linux.local>.
 
   - <https://stackoverflow.com/a/38783433/326984>
   - <https://github.com/ream88/nginx-test>
@@ -104,9 +104,9 @@ Ubuntu 25.10.
 
   ```sh
   bun run build
-  rsync -vr dist docker.local:/home/mario/docker/nginx/
-  rsync -v nginx.conf docker.local:/home/mario/docker/nginx/
-  ssh docker.local 'cd ~/docker && docker compose restart nginx'
+  rsync -vr dist linux.local:/home/mario/docker/nginx/
+  rsync -v nginx.conf linux.local:/home/mario/docker/nginx/
+  ssh linux.local 'cd ~/docker && docker compose restart nginx'
   ```
 
 - ### [WatchYourLan](https://github.com/aceberg/WatchYourLAN)
