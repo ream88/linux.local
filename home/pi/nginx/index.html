@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>docker.local</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --bg: #0b1020;
+    --bg-2: #0f1730;
+    --panel: #111a32;
+    --panel-2: #0d1428;
+    --line: rgba(148, 197, 255, 0.10);
+    --line-strong: rgba(148, 197, 255, 0.18);
+    --grid: rgba(148, 197, 255, 0.05);
+    --ink: #e6edf7;
+    --ink-soft: #9aa7c2;
+    --ink-muted: #5f6c87;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --cyan: #38bdf8;
+    --magenta: #c084fc;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--mono);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100svh;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      radial-gradient(900px 500px at 50% -10%, #16224a 0%, transparent 60%);
+    background-size: 32px 32px, 32px 32px, auto;
+    background-position: -1px -1px, -1px -1px, center top;
+  }
+
+  .page {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(16px, 3.5vw, 36px);
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── Top bar ───────────────────────────────── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 18px;
+    border-bottom: 1px dashed var(--line-strong);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .brand .glyph {
+    width: 22px; height: 22px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    color: var(--cyan);
+    font-size: 11px;
+  }
+  .brand .sep { color: var(--ink-muted); margin: 0 2px; }
+  .brand .path { color: var(--ink-soft); font-weight: 400; }
+
+  .meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: rgba(148,197,255,0.04);
+    font-feature-settings: "tnum" 1;
+  }
+  .pill .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 3px rgba(74,222,128,.18);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,.18); }
+    50% { box-shadow: 0 0 0 5px rgba(74,222,128,.05); }
+  }
+  .pill .k { color: var(--ink-muted); }
+  .pill .v { color: var(--ink); }
+
+  /* ── Hero ──────────────────────────────────── */
+  .hero {
+    padding: 28px 0 22px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: end;
+  }
+  .hero h1 {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .hero h1 .accent { color: var(--cyan); }
+  .hero p {
+    margin: 8px 0 0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    max-width: 60ch;
+    line-height: 1.5;
+  }
+  .hero p::before {
+    content: "$ ";
+    color: var(--green);
+    font-weight: 600;
+  }
+  .hero p .prompt { color: var(--cyan); }
+  .hero p .kw { color: var(--ink); }
+
+  .stats {
+    display: grid;
+    grid-auto-flow: column;
+    gap: 22px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .stats .stat { text-align: right; }
+  .stats .stat .num {
+    display: block;
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0;
+    text-transform: none;
+    margin-bottom: 2px;
+  }
+
+  /* ── Section label ─────────────────────────── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0 14px;
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 600;
+  }
+  .section-label::before {
+    content: "";
+    width: 14px;
+    height: 1px;
+    background: var(--line-strong);
+  }
+  .section-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .section-label .count {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  /* ── Grid + cards ──────────────────────────── */
+  main { flex: 1; }
+
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .grid > li { display: flex; }
+
+  .card {
+    --hue: var(--cyan);
+    position: relative;
+    flex: 1;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto 1fr auto;
+    column-gap: 16px;
+    row-gap: 6px;
+    padding: 18px 18px 16px;
+    background: var(--panel);
+    color: var(--ink);
+    text-decoration: none;
+    transition: background-color .15s ease, color .15s ease;
+    overflow: hidden;
+    min-height: 132px;
+  }
+  .card::before {
+    /* corner crosshairs */
+    content: "";
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--line-strong), var(--line-strong)),
+      linear-gradient(var(--line-strong), var(--line-strong)),
+      linear-gradient(var(--line-strong), var(--line-strong)),
+      linear-gradient(var(--line-strong), var(--line-strong)),
+      linear-gradient(var(--line-strong), var(--line-strong)),
+      linear-gradient(var(--line-strong), var(--line-strong)),
+      linear-gradient(var(--line-strong), var(--line-strong)),
+      linear-gradient(var(--line-strong), var(--line-strong));
+    background-repeat: no-repeat;
+    background-size:
+      8px 1px, 1px 8px,
+      8px 1px, 1px 8px,
+      8px 1px, 1px 8px,
+      8px 1px, 1px 8px;
+    background-position:
+      0 0,         0 0,
+      100% 0,      100% 0,
+      0 100%,      0 100%,
+      100% 100%,   100% 100%;
+    opacity: 0;
+    transition: opacity .18s ease;
+  }
+  .card:hover { background: var(--panel-2); }
+  .card:hover::before { opacity: 1; }
+  .card:focus-visible {
+    outline: 1px solid var(--hue);
+    outline-offset: -1px;
+  }
+  .card:hover .card-name { color: var(--hue); }
+  .card:hover .card-arrow { color: var(--hue); transform: translate(2px, -2px); }
+  .card:hover .card-icon { border-color: var(--hue); }
+
+  .card-icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    background: rgba(148,197,255,0.04);
+    border: 1px solid var(--line-strong);
+    display: grid;
+    place-items: center;
+    transition: border-color .18s ease;
+    align-self: start;
+  }
+  .card-icon img,
+  .card-icon svg {
+    width: 26px;
+    height: 26px;
+    display: block;
+  }
+
+  .card-head {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .card-name {
+    font-family: "Inter", sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    transition: color .15s ease;
+  }
+  .card-port {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-feature-settings: "tnum" 1;
+  }
+  .card-port::before { content: ":"; color: var(--ink-muted); }
+
+  .card-desc {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  .card-arrow {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: start;
+    color: var(--ink-muted);
+    transition: color .15s ease, transform .15s ease;
+  }
+
+  .card-foot {
+    grid-column: 2 / -1;
+    grid-row: 3;
+    align-self: end;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .card-foot .status {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: var(--green);
+  }
+  .card-foot .status .d {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--green);
+  }
+  .card-foot .proto { color: var(--ink-soft); }
+
+  /* ── Mobile ────────────────────────────────── */
+  @media (max-width: 640px) {
+    .hero { grid-template-columns: 1fr; gap: 16px; }
+    .stats { grid-auto-flow: column; gap: 18px; justify-content: start; }
+    .stats .stat { text-align: left; }
+    .stats .stat .num { font-size: 18px; }
+    header { padding-bottom: 14px; }
+  }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr; }
+    .card { padding: 16px; min-height: 110px; column-gap: 14px; }
+    .card-icon { width: 42px; height: 42px; }
+    .card-icon img, .card-icon svg { width: 22px; height: 22px; }
+    .card-name { font-size: 15.5px; }
+    .meta { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div>
+        <h1>docker<span class="accent">.local</span></h1>
+        <p>providing self hosted services on <span class="kw">10.0.0.254</span></p>
+      </div>
+    </section>
+
+    <main>
+      <div class="section-label">
+        <span>services</span>
+      </div>
+
+      <ul class="grid" role="list">
+        <li>
+          <a class="card" href="http://10.0.0.254:8888" style="--hue: #a78bfa;">
+            <span class="card-icon">
+              <img src="https://cdn.simpleicons.org/homebridge/a78bfa" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'HB',style:'font-size:11px;font-weight:600;color:#a78bfa'}))" />
+            </span>
+            <span class="card-head">
+              <span class="card-name">Homebridge</span>
+              <span class="card-port">8888</span>
+            </span>
+            <span class="card-desc">HomeKit support for the impatient.</span>
+            <span class="card-arrow" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+            </span>
+            <span class="card-foot">
+              <span class="status"><span class="d"></span>running</span>
+              <span class="proto">http</span>
+            </span>
+          </a>
+        </li>
+
+        <li>
+          <a class="card" href="http://10.0.0.254:8889/admin" style="--hue: #f87171;">
+            <span class="card-icon">
+              <img src="https://cdn.simpleicons.org/pihole/f87171" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'PH',style:'font-size:11px;font-weight:600;color:#f87171'}))" />
+            </span>
+            <span class="card-head">
+              <span class="card-name">Pi-hole</span>
+              <span class="card-port">8889</span>
+            </span>
+            <span class="card-desc">A black hole for Internet advertisements.</span>
+            <span class="card-arrow" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+            </span>
+            <span class="card-foot">
+              <span class="status"><span class="d"></span>running</span>
+              <span class="proto">dns · http</span>
+            </span>
+          </a>
+        </li>
+
+        <li>
+          <a class="card" href="http://10.0.0.254:8840" style="--hue: #38bdf8;">
+            <span class="card-icon">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <circle cx="12" cy="12" r="5.5"/>
+                <circle cx="12" cy="12" r="2"/>
+                <path d="M12 12 L19.5 7.5"/>
+                <circle cx="19.5" cy="7.5" r="1.2" fill="#38bdf8" stroke="none"/>
+              </svg>
+            </span>
+            <span class="card-head">
+              <span class="card-name">WatchYourLAN</span>
+              <span class="card-port">8840</span>
+            </span>
+            <span class="card-desc">Lightweight network IP scanner with web GUI.</span>
+            <span class="card-arrow" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+            </span>
+            <span class="card-foot">
+              <span class="status"><span class="d"></span>running</span>
+              <span class="proto">http</span>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </main>
+  </div>
+</body>
+</html>
