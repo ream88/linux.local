@@ -1,41 +1,21 @@
 # docker.local
 
-The following configuration is for my Raspberry Pi 3B, which operates on
-`docker.local`. Currently, its primary function is to serve as a Docker host for
-a range of services, which include:
+The following configuration uses [Docker Compose](https://docs.docker.com/compose/)
+to run containers on a [mini PC](https://www.amazon.de/dp/B0GJ5HS2GC) running
+Ubuntu 25.10.
 
 ## Services
 
 - ### [Tailscale](https://tailscale.com)
 
-  ```sh
-  # export TS_AUTHKEY=tskey-auth-xxxxxxxxxxxxxxxx
+  Requires a `TS_AUTHKEY` environment variable to be set before starting:
 
-  docker run -d \
-  --cap-add=NET_ADMIN \
-  --cap-add=NET_RAW \
-  --name=tailscale \
-  --network=host \
-  --restart unless-stopped \
-  -e TS_AUTHKEY \
-  -e TS_ROUTES=10.0.0.0/24 \
-  -e TS_EXTRA_ARGS="--advertise-exit-node" \
-  -v /dev/net/tun:/dev/net/tun \
-  -v /var/lib:/var/lib \
-  tailscale/tailscale
+  ```sh
+  export TS_AUTHKEY=tskey-auth-xxxxxxxxxxxxxxxx
+  docker compose up -d tailscale
   ```
 
 - ### [Homebridge](https://github.com/homebridge/docker-homebridge)
-
-  ```sh
-  docker run -itd \
-    --name=homebridge \
-    --network=host \
-    --restart unless-stopped \
-    -e TZ=Europe/Vienna \
-    -v "$HOME/homebridge":/homebridge \
-    homebridge/homebridge
-  ```
 
   Homebridge is used to enable several appliances in my apartment to be compatible with HomeKit:
 
@@ -46,16 +26,6 @@ a range of services, which include:
 
 - ### [Mosquitto](https://mosquitto.org)
 
-  ```sh
-  docker run -itd \
-    --name=mosquitto \
-    --restart unless-stopped \
-    -p 1883:1883 \
-    -p 9001:9001 \
-    -v "$HOME/mosquitto/mosquitto.conf:"/mosquitto/config/mosquitto.conf \
-    eclipse-mosquitto
-  ```
-
   Mosquitto helps connect with my Sonoff lamps using MQTT. Here's the JSON setup
   I used in Homebridge-UI for the lamps:
 
@@ -63,7 +33,7 @@ a range of services, which include:
   {
     "type": "lightbulb-OnOff",
     "name": "Fridge",
-    "url": "http://10.0.0.254:1883",
+    "url": "http://10.0.0.4:1883",
     "topics": {
         "getOnline": "fridge/status",
         "getOn": "fridge/switch/sonoff_lamp/state",
@@ -85,7 +55,7 @@ a range of services, which include:
 
   1. Open the Nuki app and go to lock settings
   2. Enable MQTT integration with the following settings:
-     - **Host:** `10.0.0.254`
+     - **Host:** `10.0.0.4`
      - **Username:** `mqtt`
      - **Password:** `mosquito`
      - **Automatic discovery:** Off (disable the first setting for automatic device discovery)
@@ -117,47 +87,13 @@ a range of services, which include:
 
 - ### [Pi-hole](https://pi-hole.net)
 
-  ```sh
-  docker run -itd \
-    --dns=1.1.1.1 \
-    --dns=8.8.4.4 \
-    --dns=8.8.8.8 \
-    --name=pihole \
-    --network=host \
-    --restart unless-stopped \
-    -e FTLCONF_webserver_port=8889 \
-    -e TZ=Europe/Vienna \
-    -e VIRTUAL_HOST=docker.local \
-    -v "$HOME/etc-dnsmasq.d/":/etc/dnsmasq.d/ \
-    -v "$HOME/etc-pihole/":/etc/pihole/ \
-    pihole/pihole:latest
-  ```
-
-  Updating can be done by running the following commands, followed by running
-  the above command to recreate the container:
-
-  ```sh
-  docker pull pihole/pihole
-  docker rm -f pihole
-  ```
-
   The password for the Pi-hole admin interface can be set/unset via:
 
   ```sh
-  docker exec -it pihole sudo pihole setpassword
+  docker exec -it pihole pihole setpassword
   ```
 
 - ### NGINX
-
-  ```sh
-  docker run -itd \
-    --name=nginx \
-    --network=host \
-    --restart unless-stopped \
-    -v "$HOME/nginx/dist:/etc/nginx/html" \
-    -v "$HOME/nginx/nginx.conf:/etc/nginx/nginx.conf" \
-    nginx
-  ```
 
   Nginx is used to render a simple website at <http://docker.local>.
 
@@ -168,52 +104,32 @@ a range of services, which include:
 
   ```sh
   bun run build
-  rsync -vr dist docker.local:/home/pi/nginx/
-  rsync -v nginx.conf docker.local:/home/pi/nginx/
-  ssh docker.local 'docker rm -f $(docker ps -qaf name=nginx)'
-  ssh docker.local 'docker run -itd \
-      --name=nginx \
-      --network=host \
-      --restart unless-stopped \
-      -v "$HOME/nginx/dist:/etc/nginx/html" \
-      -v "$HOME/nginx/nginx.conf:/etc/nginx/nginx.conf" \
-      nginx'
+  rsync -vr dist docker.local:/home/mario/docker/nginx/
+  rsync -v nginx.conf docker.local:/home/mario/docker/nginx/
+  ssh docker.local 'cd ~/docker && docker compose restart nginx'
   ```
 
 - ### [WatchYourLan](https://github.com/aceberg/WatchYourLAN)
 
-  ```sh
-  docker run \
-    --name wyl \
-    --network=host \
-    --restart unless-stopped \
-    -e IFACES="eth0 wlan0" \
-    -e TZ=Europe/Vienna \
-    -v watchyourlan:/data/WatchYourLAN \
-    aceberg/watchyourlan
-  ```
-
 ## Setup
 
-- Download and flash [Raspbian Lite](https://www.raspberrypi.org/downloads/raspbian/) onto a Micro SD card with at least 8 GB.
-- Mount the SD card. It will appear at `/Volumes/boot`.
-- Run `setup.sh`. This script enables SSH and configures the Wi-Fi connection.
-- Insert the SD card into the Raspberry Pi and boot it.
-- Try connecting to it via `ssh pi@raspberrypi.local`.
-- Change the hostname to `docker` by editing both `/etc/hosts` and `/etc/hostname`.
-- Run `ssh-copy-id -i ~/.ssh/uhermariogmailcom.pub pi@docker.local`.
-- Install Docker:
+1. Install Docker:
 
-  ```sh
-  curl -sSL https://get.docker.com | sh
-  sudo usermod -aG docker pi
-  ```
+   ```sh
+   curl -fsSL https://get.docker.com | sudo sh
+   sudo usermod -aG docker $USER
+   ```
+
+2. Start all services:
+
+   ```sh
+   cd ~/docker
+   docker compose up -d
+   ```
 
 ## Links
 
-- <https://dev.to/rohansawant/installing-docker-and-docker-compose-on-the-raspberry-pi-in-5-simple-steps-3mgl>
-- <https://howchoo.com/g/ndy1zte2yjn/how-to-set-up-wifi-on-your-raspberry-pi-without-ethernet>
-- <https://howchoo.com/g/ote0ywmzywj/how-to-enable-ssh-on-raspbian-without-a-screen>
+- <https://docs.docker.com/compose/>
 
 ## License
 
