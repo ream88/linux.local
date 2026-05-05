@@ -93,6 +93,12 @@ Ubuntu 25.10.
   docker exec -it pihole pihole setpassword
   ```
 
+  or
+
+  ```sh
+  ssh -t mario@linux.local docker exec -it pihole pihole setpassword
+  ```
+
 - ### NGINX
 
   Nginx is used to render a simple website at <http://linux.local>.
